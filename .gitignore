@@ -1,0 +1,12 @@
+# Dependencies
+**/node_modules/
+
+# Local environment variables and credentials
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local logs and operating-system files
+*.log
+.DS_Store
+Thumbs.db

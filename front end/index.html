@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Productos - Catálogo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="main-header">
+      <div class="header-content">
+        <h1>📦 Panel de Productos</h1>
+        <p>Cliente REST (GET, POST, PUT, PATCH, DELETE)</p>
+      </div>
+      <div class="api-status" id="api-status">
+        <span class="status-dot"></span> <span id="status-text">Conectando a puerto 5051...</span>
+      </div>
+    </header>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <section class="toolbar-section">
+      <div class="search-box">
+        <input type="number" id="search-id-input" placeholder="Buscar por ID..." min="1">
+        <button id="btn-search-id" class="btn btn-secondary">🔍 Buscar (GET)</button>
+        <button id="btn-refresh" class="btn btn-outline">🔄 Refrescar lista</button>
+      </div>
+      <button id="btn-open-create" class="btn btn-primary">➕ Nuevo Producto (POST)</button>
+    </section>
+
+    <main class="table-card">
+      <div class="table-header">
+        <h2>Catálogo de Alimentos</h2>
+        <div class="limit-selector">
+          <label for="select-limit">Por página:</label>
+          <select id="select-limit">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre del Producto</th>
+              <th>Categoría</th>
+              <th>PVP ($)</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="products-tbody">
+            <tr>
+              <td colspan="5" class="text-center">Cargando productos...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pagination-footer">
+        <span id="pagination-info" class="pagination-info">Mostrando página 1 de 1</span>
+        <div class="pagination-controls">
+          <button id="btn-prev-page" class="btn btn-sm btn-outline" disabled>⬅ Anterior</button>
+          <span id="current-page-badge" class="page-badge">1</span>
+          <button id="btn-next-page" class="btn btn-sm btn-outline" disabled>Siguiente ➡</button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <div id="modal-create" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Registrar Nuevo Producto</h3>
+        <button class="btn-close" data-close="modal-create">&times;</button>
+      </div>
+      <form id="form-create">
+        <div class="form-group">
+          <label for="create-nombre">Nombre del Producto</label>
+          <input type="text" id="create-nombre" required placeholder="Ej. Queso Mozzarella 500g">
+        </div>
+        <div class="form-group">
+          <label for="create-categoria">Categoría</label>
+          <input type="text" id="create-categoria" required placeholder="Ej. Lácteos y Huevos">
+        </div>
+        <div class="form-group">
+          <label for="create-pvp">Precio PVP ($)</label>
+          <input type="number" id="create-pvp" step="0.01" min="0" required placeholder="0.00">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" data-close="modal-create">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-put" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Actualización Completa (PUT)</h3>
+        <button class="btn-close" data-close="modal-put">&times;</button>
+      </div>
+      <form id="form-put">
+        <input type="hidden" id="put-id">
+        <div class="form-group">
+          <label for="put-nombre">Nombre del Producto (Obligatorio)</label>
+          <input type="text" id="put-nombre" required>
+        </div>
+        <div class="form-group">
+          <label for="put-categoria">Categoría (Obligatoria)</label>
+          <input type="text" id="put-categoria" required>
+        </div>
+        <div class="form-group">
+          <label for="put-pvp">Precio PVP ($) (Obligatorio)</label>
+          <input type="number" id="put-pvp" step="0.01" min="0" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" data-close="modal-put">Cancelar</button>
+          <button type="submit" class="btn btn-warning">Reemplazar Todo (PUT)</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-patch" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Actualización Parcial (PATCH)</h3>
+        <button class="btn-close" data-close="modal-patch">&times;</button>
+      </div>
+      <form id="form-patch">
+        <input type="hidden" id="patch-id">
+        <p class="patch-instruction">Modifica solo los campos que deseas actualizar:</p>
+        <div class="form-group">
+          <label for="patch-nombre">Nombre del Producto</label>
+          <input type="text" id="patch-nombre" placeholder="Dejar vacío para mantener">
+        </div>
+        <div class="form-group">
+          <label for="patch-categoria">Categoría</label>
+          <input type="text" id="patch-categoria" placeholder="Dejar vacío para mantener">
+        </div>
+        <div class="form-group">
+          <label for="patch-pvp">Precio PVP ($)</label>
+          <input type="number" id="patch-pvp" step="0.01" min="0" placeholder="Dejar vacío para mantener">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" data-close="modal-patch">Cancelar</button>
+          <button type="submit" class="btn btn-info">Aplicar Parche (PATCH)</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
