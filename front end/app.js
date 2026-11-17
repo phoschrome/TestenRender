@@ -76,17 +76,19 @@ document.querySelectorAll('[data-close]').forEach((btn) => {
 
 async function fetchProducts(page = 1, limit = 10) {
   tbody.innerHTML = '<tr><td colspan="5" class="text-center">Consultando registros...</td></tr>';
+  let apiResponded = false;
   try {
     const response = await fetch(`${API_BASE_URL}?page=${page}&limit=${limit}`, {
       headers: { Accept: 'application/json' }
     });
+    apiResponded = true;
+    updateServerStatus(true);
 
     if (!response.ok) {
       throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
     }
 
     const resData = await response.json();
-    updateServerStatus(true);
 
     if (resData.success && Array.isArray(resData.data)) {
       state.products = resData.data;
@@ -97,8 +99,11 @@ async function fetchProducts(page = 1, limit = 10) {
       renderPaginationControls();
     }
   } catch (err) {
-    updateServerStatus(false);
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--danger)">No se pudo conectar a la API (${err.message})</td></tr>`;
+    updateServerStatus(apiResponded);
+    const errorMessage = apiResponded
+      ? 'La API respondió con un error'
+      : 'No se pudo conectar a la API';
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--danger)">${errorMessage} (${err.message})</td></tr>`;
     showToast('Error al obtener productos del backend', 'error');
   }
 }
