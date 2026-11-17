@@ -1,4 +1,9 @@
-const API_BASE_URL = 'http://localhost:5051/api/productos';
+const isLocal = window.location.protocol === 'file:'
+  || window.location.hostname === 'localhost'
+  || window.location.hostname === '127.0.0.1';
+const API_BASE_URL = `${isLocal
+  ? 'http://localhost:5051'
+  : 'https://testenrender-api.onrender.com'}/api/productos`;
 
 const state = {
   currentPage: 1,
@@ -47,7 +52,7 @@ function showToast(message, type = 'info') {
 function updateServerStatus(online) {
   if (online) {
     statusDot.className = 'status-dot online';
-    statusText.textContent = 'Servidor Conectado (:5051)';
+    statusText.textContent = isLocal ? 'API local conectada' : 'API de Render conectada';
   } else {
     statusDot.className = 'status-dot offline';
     statusText.textContent = 'Servidor Desconectado';
