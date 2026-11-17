@@ -2,6 +2,8 @@
 
 Este documento detalla la estructura, configuración y código fuente para implementar una API RESTful basada en Node.js, Express, Prisma y PostgreSQL sobre el puerto `5051`.
 
+> **Estado del proyecto:** el backend ejecutable usa Node.js `26.13.0`, Express `4.22.3`, módulos ESM y Prisma `7.10.1` con el adaptador PostgreSQL. Los archivos actuales dentro de `backend-productos/` son la fuente de verdad; algunos ejemplos históricos de esta guía muestran la implementación original.
+
 ---
 
 ## 1. Estructura del Proyecto
@@ -37,11 +39,10 @@ backend-productos/
 Ejecuta el siguiente comando para inicializar el proyecto e instalar las dependencias:
 
 ```bash
-npm init -y
-npm install express @prisma/client dotenv
-npm install --save-dev prisma
-npm install --save-dev nodemon
-npx prisma generate
+npm ci
+npm run prisma:generate
+npm run prisma:validate
+npm test
 ```
 
 Contenido de `package.json`:
@@ -56,17 +57,21 @@ Contenido de `package.json`:
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "prisma:generate": "prisma generate",
-    "prisma:validate": "prisma validate"
+    "prisma:validate": "prisma validate",
+    "test": "node --test"
   },
+  "type": "module",
+  "engines": { "node": "26.13.0" },
   "dependencies": {
-    "@prisma/client": "^6.19.0",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
     "cors": "^2.8.6",
     "dotenv": "^16.4.5",
-    "express": "^4.21.0"
+    "express": "4.22.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7",
-    "prisma": "^6.19.0"
+    "nodemon": "3.1.11",
+    "prisma": "7.10.1"
   }
 }
 ```
@@ -94,12 +99,12 @@ DATABASE_URL="postgresql://postgres:tu_password@localhost:5432/BDD_Productos?sch
 
 ```prisma
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Producto {
@@ -112,7 +117,7 @@ model Producto {
 }
 ```
 
-El servidor reutiliza una instancia de Prisma desde `src/config/db.js`. Para mantener la configuración existente, acepta las variables `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` y `DB_NAME` cuando no se define `DATABASE_URL`. Los comandos de Prisma que validan o consultan el esquema requieren `DATABASE_URL`; la API puede seguir usando la configuración heredada.
+La conexión del CLI se configura en `prisma.config.ts`. El backend acepta `DATABASE_URL` o, para mantener la configuración local existente, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` y `DB_NAME`. Prisma 7 usa `@prisma/adapter-pg`; el cliente generado en `src/generated/prisma/` se crea con `npm run prisma:generate` y no se versiona.
 
 ---
 
@@ -640,3 +645,20 @@ curl -X PATCH "http://localhost:5051/api/productos/1" \
 ```bash
 curl -X DELETE "http://localhost:5051/api/productos/1"
 ```
+
+---
+
+## 11. CI/CD y despliegue en Render
+
+El workflow `.github/workflows/backend-ci.yml` ejecuta para el backend:
+
+1. Node.js `26.13.0` y Express `4.22.3`.
+2. Instalación limpia con `npm ci`.
+3. Generación y validación del cliente Prisma.
+4. Pruebas HTTP de endpoints, validación, CORS y manejo seguro de errores.
+5. Auditoría de dependencias con `npm audit --audit-level=moderate`.
+6. Despliegue mediante Render Deploy Hook únicamente después de pasar las verificaciones y habilitar `RENDER_DEPLOY_ENABLED`.
+
+Configura `RENDER_DEPLOY_HOOK_URL` como secreto del repositorio y `RENDER_DEPLOY_ENABLED=true` como variable solo cuando el servicio esté listo. Render ejecuta `npm ci --include=dev && npm run prisma:generate`. La URL PostgreSQL debe permanecer como variable privada `DATABASE_URL` en Render. Si una contraseña se compartió públicamente, rótala antes del despliegue.
+
+El Blueprint está en `render.yaml`, limitado a `backend-productos/`, con health check en `/health`. El frontend y sus archivos no se despliegan desde este workflow.

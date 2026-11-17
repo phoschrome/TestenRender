@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+import crypto from 'node:crypto';
 
 const responseIntegrityHash = (req, res, next) => {
   const originalJson = res.json;
@@ -21,4 +21,4 @@ const responseIntegrityHash = (req, res, next) => {
   next();
 };
 
-module.exports = responseIntegrityHash;
+export default responseIntegrityHash;

@@ -1,4 +1,4 @@
-const ProductoModel = require('../models/productos.model');
+import ProductoModel from '../models/productos.model.js';
 
 const productosController = {
   async getAll(req, res, next) {
@@ -125,4 +125,4 @@ const productosController = {
   },
 };
 
-module.exports = productosController;
+export default productosController;

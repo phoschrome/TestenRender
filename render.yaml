@@ -4,13 +4,16 @@ services:
     runtime: node
     rootDir: backend-productos
     plan: free
-    buildCommand: npm ci && npm run prisma:generate
+    buildCommand: npm ci --include=dev && npm run prisma:generate
     startCommand: npm start
     autoDeployTrigger: off
+    healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
         value: 26.13.0
       - key: NODE_ENV
         value: production
+      - key: CORS_ORIGINS
+        value: https://phoschrome.github.io
       - key: DATABASE_URL
         sync: false

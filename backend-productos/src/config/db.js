@@ -1,6 +1,7 @@
-require('dotenv').config();
+import 'dotenv/config';
 
-const { PrismaClient } = require('@prisma/client');
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../generated/prisma/client.ts';
 
 const resolveDatabaseUrl = () => {
   if (process.env.DATABASE_URL) {
@@ -17,14 +18,13 @@ const resolveDatabaseUrl = () => {
   return `postgresql://${credentials}@${DB_HOST}:${DB_PORT || 5432}/${database}?schema=public`;
 };
 
-const prisma = new PrismaClient({
-  datasources: {
-    db: { url: resolveDatabaseUrl() },
-  },
+const adapter = new PrismaPg({
+  connectionString: resolveDatabaseUrl(),
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
-prisma.$on('error', (error) => {
-  console.error('Error imprevisto en el cliente de base de datos:', error);
-});
+const db = new PrismaClient({ adapter });
 
-module.exports = prisma;
+export default db;

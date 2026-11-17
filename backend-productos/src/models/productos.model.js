@@ -1,5 +1,5 @@
-const { Prisma } = require('@prisma/client');
-const db = require('../config/db');
+import { Prisma } from '../generated/prisma/client.ts';
+import db from '../config/db.js';
 
 const productoFields = {
   id_producto: true,
@@ -72,4 +72,4 @@ const ProductoModel = {
   },
 };
 
-module.exports = ProductoModel;
+export default ProductoModel;

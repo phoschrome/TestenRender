@@ -1,5 +1,6 @@
 # Dependencies
 **/node_modules/
+**/src/generated/prisma/
 
 # Local environment variables and credentials
 **/.env

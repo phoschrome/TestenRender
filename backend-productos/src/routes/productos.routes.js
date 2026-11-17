@@ -1,11 +1,11 @@
-const { Router } = require('express');
-const productosController = require('../controllers/productos.controller');
-const paginate = require('../middlewares/pagination.middleware');
-const {
+import { Router } from 'express';
+import productosController from '../controllers/productos.controller.js';
+import paginate from '../middlewares/pagination.middleware.js';
+import {
   validateIdParam,
   validateCreateProduct,
   validatePatchProduct,
-} = require('../middlewares/validation.middleware');
+} from '../middlewares/validation.middleware.js';
 
 const router = Router();
 
@@ -16,4 +16,4 @@ router.put('/:id', validateIdParam, validateCreateProduct, productosController.u
 router.patch('/:id', validateIdParam, validatePatchProduct, productosController.patch);
 router.delete('/:id', validateIdParam, productosController.delete);
 
-module.exports = router;
+export default router;

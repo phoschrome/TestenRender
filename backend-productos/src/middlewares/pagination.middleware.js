@@ -16,4 +16,4 @@ const paginate = (req, res, next) => {
   next();
 };
 
-module.exports = paginate;
+export default paginate;
